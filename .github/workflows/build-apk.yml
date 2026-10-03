@@ -1,31 +1,57 @@
-name: Build QuantDesk APK
+name: Build Native Kotlin APK
+
 on:
   push:
     branches: [main]
   workflow_dispatch:
+
 permissions:
   contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
-          channel: stable
-          cache: true
-      - name: Create Android platform
-        run: flutter create --platforms=android --org com.quantdesk .
-      - name: Install dependencies
-        run: flutter pub get
-      - name: Run tests
-        run: flutter test
-      - name: Analyze
-        run: flutter analyze
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Verify native project
+        run: |
+          test -f settings.gradle.kts
+          test -f app/build.gradle.kts
+          test -f app/src/main/java/com/quantdesk/sachinvs3/MainActivity.kt
+          test ! -f pubspec.yaml
+          test ! -f lib/main.dart
+
+      - name: Run Kotlin unit tests
+        run: gradle test
+
+      - name: Android lint
+        run: gradle lint
+
       - name: Build release APK
-        run: flutter build apk --release
+        run: gradle assembleRelease
+
+      - name: Verify APK artifact
+        run: |
+          test -f app/build/outputs/apk/release/app-release.apk
+          ls -lh app/build/outputs/apk/release/app-release.apk
+          unzip -t app/build/outputs/apk/release/app-release.apk >/dev/null
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: quantdesk-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: sachinvs3-native-release-apk
+          path: app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
