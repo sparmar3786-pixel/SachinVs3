@@ -1,24 +1,26 @@
-# QuantDesk
+# SachinVs3 QuantDesk
 
-QuantDesk is a paper-trading Android terminal based on a six-layer signal pipeline.
+## Native Android implementation
 
-## Six layers
-1. Data Guard
-2. Regime Detector
-3. Strategy Ensemble
-4. Online ML
-5. Risk Guard
-6. Supervisor
+This repository now uses **native Android + Kotlin** for the APK. Flutter and Dart are removed from the Android build path.
 
-## Safety boundary
-This build is paper-only. It does not place broker orders and does not store Angel One/NSE credentials in the APK.
+### APK build
+GitHub Actions runs JDK 17, Gradle 8.7, Kotlin unit tests, Android lint, the native release build, an APK ZIP integrity check, and artifact upload.
 
-## Backend
-Run the FastAPI service from backend with:
-python -m pip install -r requirements.txt
-uvicorn main:app --host 0.0.0.0 --port 8000
+APK output:
+`app/build/outputs/apk/release/app-release.apk`
 
-## Android
-GitHub Actions creates the Android platform, runs Flutter tests and analysis, then builds a release APK artifact.
+### App
+- Native Kotlin Activity
+- Paper-only signal engine
+- Six AI-layer status display
+- Five strategy status display
+- Auto refresh / pause / manual refresh
+- No broker order routing
+- No Angel One/NSE credentials embedded in APK
 
-Live MCP/broker integration should remain server-side; secrets must never be embedded in the APK.
+### Backend
+The existing FastAPI backend remains separate under `backend/`. Live broker credentials stay server-side.
+
+### Build guard
+The workflow explicitly checks that `pubspec.yaml` and `lib/main.dart` do not exist, preventing an accidental Flutter/Dart build.
